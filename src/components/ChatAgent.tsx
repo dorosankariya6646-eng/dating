@@ -15,7 +15,7 @@ export function ChatAgent() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hey! 💕 Kya scene hai yaar? Dating app stuff, situationship, relationship, ya kuch aur? Bata, kya chal raha hai?",
+      content: "Hey! 💕 Before I help you out — what's going on? Are you dealing with dating app stuff, a situationship, a relationship, or something else entirely?",
     },
   ]);
   const [input, setInput] = useState('');
