@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -13,7 +15,7 @@ export function ChatAgent() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hey! I'm your dating expert. What's on your mind? Whether it's texting advice, first date ideas, or navigating a tricky situation, I'm here to help! 💕",
+      content: "Hey! 💕 Before I help you out — what's going on? Are you dealing with dating app stuff, a situationship, a relationship, or something else entirely?",
     },
   ]);
   const [input, setInput] = useState('');
@@ -30,27 +32,28 @@ export function ChatAgent() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { role: 'user', content: input.trim() };
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual AI integration)
-    setTimeout(() => {
-      const responses = [
-        "That's a great question! When it comes to dating, authenticity is key. Be yourself and let conversations flow naturally.",
-        "I understand how tricky that can be. Have you tried being direct but kind? Sometimes honesty is the best approach.",
-        "Dating can feel overwhelming sometimes. Take a breath - you've got this! What specific aspect would you like to focus on?",
-        "That's actually a really common situation. The best thing you can do is communicate openly and set clear expectations.",
-        "Great insight! Remember, good relationships are built on mutual respect and genuine connection.",
-      ];
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      
+    try {
+      const { data, error } = await supabase.functions.invoke('dating-expert-chat', {
+        body: { messages: newMessages },
+      });
+
+      if (error) throw error;
+
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: randomResponse },
+        { role: 'assistant', content: data.message },
       ]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to get response. Please try again.');
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -76,7 +79,7 @@ export function ChatAgent() {
                     : 'bg-secondary text-secondary-foreground rounded-bl-md'
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
               </div>
             </div>
           ))}
