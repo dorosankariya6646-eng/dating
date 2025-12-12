@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChatAgent } from '@/components/ChatAgent';
 import { FeatureCard } from '@/components/FeatureCard';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,15 @@ import { Heart, MessageCircle, Shield, Sparkles, ArrowRight, LogOut, User } from
 const Index = () => {
   const [showChat, setShowChat] = useState(false);
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStartChat = () => {
+    if (!user) {
+      navigate('/auth');
+    } else {
+      setShowChat(true);
+    }
+  };
 
   return (
     <div className="min-h-screen gradient-background">
@@ -68,15 +77,17 @@ const Index = () => {
                   <Button 
                     variant="hero" 
                     size="xl"
-                    onClick={() => setShowChat(true)}
+                    onClick={handleStartChat}
                     className="group"
                   >
                     <MessageCircle className="h-5 w-5 mr-2" />
-                    Start Chatting
+                    {user ? 'Start Chatting' : 'Sign Up to Chat'}
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">Free • No signup required</p>
+                <p className="text-sm text-muted-foreground">
+                  {user ? 'Ready to chat!' : 'Free account required'}
+                </p>
               </div>
             ) : (
               <div className="py-12 animate-scale-in">
