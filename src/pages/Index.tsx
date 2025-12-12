@@ -1,11 +1,17 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { VoiceAgent } from '@/components/VoiceAgent';
+import { ChatAgent } from '@/components/ChatAgent';
 import { FeatureCard } from '@/components/FeatureCard';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageCircle, Shield, Sparkles, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Heart, MessageCircle, Shield, Sparkles, ArrowRight, Mic, LogOut, User } from 'lucide-react';
+
+type Mode = 'none' | 'voice' | 'chat';
 
 const Index = () => {
-  const [showAgent, setShowAgent] = useState(false);
+  const [mode, setMode] = useState<Mode>('none');
+  const { user, signOut } = useAuth();
   
   // Replace with your ElevenLabs public agent ID
   const AGENT_ID = 'your-agent-id-here';
@@ -25,11 +31,29 @@ const Index = () => {
               <Heart className="h-8 w-8 text-primary" />
               <span className="font-display text-xl font-semibold text-foreground">DateExpert</span>
             </div>
+            <div className="flex items-center gap-3">
+              {user ? (
+                <>
+                  <span className="text-sm text-muted-foreground hidden sm:block">
+                    <User className="h-4 w-4 inline mr-1" />
+                    {user.email}
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/auth">Sign In</Link>
+                </Button>
+              )}
+            </div>
           </header>
 
           {/* Main content */}
           <div className="max-w-4xl mx-auto text-center">
-            {!showAgent ? (
+            {mode === 'none' ? (
               <div className="animate-fade-in space-y-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
                   <Sparkles className="h-4 w-4" />
@@ -50,14 +74,24 @@ const Index = () => {
                   <Button 
                     variant="hero" 
                     size="xl"
-                    onClick={() => setShowAgent(true)}
+                    onClick={() => setMode('voice')}
                     className="group"
                   >
+                    <Mic className="h-5 w-5 mr-2" />
                     Start Talking
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                  <p className="text-sm text-muted-foreground">Free • No signup required</p>
+                  <Button 
+                    variant="outline" 
+                    size="xl"
+                    onClick={() => setMode('chat')}
+                    className="group"
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Chat Instead
+                  </Button>
                 </div>
+                <p className="text-sm text-muted-foreground">Free • No signup required</p>
               </div>
             ) : (
               <div className="py-12 animate-scale-in">
@@ -69,13 +103,37 @@ const Index = () => {
                     I'm here to help. What's on your mind?
                   </p>
                 </div>
+
+                {/* Mode toggle tabs */}
+                <div className="flex justify-center gap-2 mb-8">
+                  <Button
+                    variant={mode === 'voice' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setMode('voice')}
+                  >
+                    <Mic className="h-4 w-4 mr-2" />
+                    Voice
+                  </Button>
+                  <Button
+                    variant={mode === 'chat' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setMode('chat')}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Chat
+                  </Button>
+                </div>
                 
-                <VoiceAgent agentId={AGENT_ID} />
+                {mode === 'voice' ? (
+                  <VoiceAgent agentId={AGENT_ID} />
+                ) : (
+                  <ChatAgent />
+                )}
                 
                 <Button
                   variant="ghost"
                   className="mt-8 text-muted-foreground"
-                  onClick={() => setShowAgent(false)}
+                  onClick={() => setMode('none')}
                 >
                   ← Back to home
                 </Button>
@@ -86,7 +144,7 @@ const Index = () => {
       </div>
 
       {/* Features Section */}
-      {!showAgent && (
+      {mode === 'none' && (
         <section className="container mx-auto px-4 py-20">
           <div className="text-center mb-12">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
